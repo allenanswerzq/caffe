@@ -16,7 +16,6 @@ namespace caffe {
 template <typename TypeParam>
 class RNNLayerTest : public MultiDeviceTest<TypeParam> {
   typedef typename TypeParam::Dtype Dtype;
-
  protected:
   RNNLayerTest() : num_output_(7) {
     blob_bottom_vec_.push_back(&blob_bottom_);
