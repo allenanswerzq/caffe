@@ -97,7 +97,7 @@ void SGDSolver<Dtype>::ClipGradients() {
     }
   }
 }
-
+//NOTE
 template <typename Dtype>
 void SGDSolver<Dtype>::ApplyUpdate() {
   Dtype rate = GetLearningRate();
@@ -218,9 +218,12 @@ void SGDSolver<Dtype>::ComputeUpdateValue(int param_id, Dtype rate) {
   // Compute the update to history, then copy it to the parameter diff.
   switch (Caffe::mode()) {
   case Caffe::CPU: {
+    //NOTE: weight update
+    //new_weight = local_rate * gradient + momentum * weight
     caffe_cpu_axpby(net_params[param_id]->count(), local_rate,
               net_params[param_id]->cpu_diff(), momentum,
               history_[param_id]->mutable_cpu_data());
+    //weight = new_weight
     caffe_copy(net_params[param_id]->count(),
         history_[param_id]->cpu_data(),
         net_params[param_id]->mutable_cpu_diff());
@@ -255,7 +258,7 @@ void SGDSolver<Dtype>::SnapshotSolverState(const string& model_filename) {
       LOG(FATAL) << "Unsupported snapshot format.";
   }
 }
-
+//NOTE
 template <typename Dtype>
 void SGDSolver<Dtype>::SnapshotSolverStateToBinaryProto(
     const string& model_filename) {
@@ -264,6 +267,7 @@ void SGDSolver<Dtype>::SnapshotSolverStateToBinaryProto(
   state.set_learned_net(model_filename);
   state.set_current_step(this->current_step_);
   state.clear_history();
+  LOG(INFO) << "______history";
   for (int i = 0; i < history_.size(); ++i) {
     // Add history
     BlobProto* history_blob = state.add_history();

@@ -30,7 +30,8 @@ namespace caffe {
 /**
  * @brief Type of a function that returns a Solver Action enumeration.
  */
-typedef boost::function<SolverAction::Enum()> ActionCallback;
+// Note: A type of fucntions that reutrn SolverAction::Enum and take null argument
+typedef boost::function<SolverAction::Enum()> ActionCallback;  
 
 /**
  * @brief An interface for classes that perform optimization on Net%s.
@@ -65,6 +66,7 @@ class Solver {
   // that stores the learned net. You should implement the SnapshotSolverState()
   // function that produces a SolverState protocol buffer that needs to be
   // written to disk together with the learned net.
+  // Note: the unify funtion to save snapshot
   void Snapshot();
   virtual ~Solver() {}
   inline const SolverParameter& param() const { return param_; }
@@ -96,6 +98,7 @@ class Solver {
 
  protected:
   // Make and apply the update value for the current iteration.
+  //NOTE: save caffemodel is not a virtual function
   virtual void ApplyUpdate() = 0;
   string SnapshotFilename(const string extension);
   string SnapshotToBinaryProto();
@@ -103,6 +106,7 @@ class Solver {
   // The test routine
   void TestAll();
   void Test(const int test_net_id = 0);
+  // Note: virutal funciton to save snapshot to disk
   virtual void SnapshotSolverState(const string& model_filename) = 0;
   virtual void RestoreSolverStateFromHDF5(const string& state_file) = 0;
   virtual void RestoreSolverStateFromBinaryProto(const string& state_file) = 0;

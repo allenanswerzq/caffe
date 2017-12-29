@@ -38,6 +38,7 @@ private:\
   classname& operator=(const classname&)
 
 // Instantiate a class with float and double specifications.
+// Explicit instantiation definition
 #define INSTANTIATE_CLASS(classname) \
   char gInstantiationGuard##classname; \
   template class classname<float>; \
@@ -139,6 +140,7 @@ class Caffe {
 #endif
 
   // Returns the mode: running on CPU or GPU.
+  // Note: static keyword
   inline static Brew mode() { return Get().mode_; }
   // The setters for the variables
   // Sets the mode. It is recommended that you don't change the mode halfway

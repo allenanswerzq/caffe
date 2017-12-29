@@ -7,7 +7,7 @@
 #include "caffe/util/math_functions.hpp"
 
 namespace caffe {
-
+//NOTE
 template <typename Dtype>
 void BaseConvolutionLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
@@ -128,6 +128,7 @@ void BaseConvolutionLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
     conv_out_channels_ = num_output_;
     conv_in_channels_ = channels_;
   }
+  //NOTE
   // Handle the parameters: weights and biases.
   // - blobs_[0] holds the filter weights
   // - blobs_[1] holds the biases (optional)
@@ -163,6 +164,8 @@ void BaseConvolutionLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
     }
     // Initialize and fill the weights:
     // output channels x input channels per-group x kernel height x kernel width
+    //NOTE: Initialize and fill the kernel filter weights
+    //Finally i found you
     this->blobs_[0].reset(new Blob<Dtype>(weight_shape));
     shared_ptr<Filler<Dtype> > weight_filler(GetFiller<Dtype>(
         this->layer_param_.convolution_param().weight_filler()));

@@ -41,8 +41,12 @@ class Layer {
     : layer_param_(param) {
       // Set phase and copy blobs (if there are any).
       phase_ = param.phase();
+      //NOTE
+      LOG(INFO) << layer_param_.DebugString();
+
       if (layer_param_.blobs_size() > 0) {
         blobs_.resize(layer_param_.blobs_size());
+        LOG(FATAL) << layer_param_.DebugString();
         for (int i = 0; i < layer_param_.blobs_size(); ++i) {
           blobs_[i].reset(new Blob<Dtype>());
           blobs_[i]->FromProto(layer_param_.blobs(i));
@@ -64,6 +68,7 @@ class Layer {
    * Sets up the loss weight multiplier blobs for any non-zero loss weights.
    * This method may not be overridden.
    */
+  //NOTE: SetUp layer
   void SetUp(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
     CheckBlobCounts(bottom, top);
@@ -298,6 +303,7 @@ class Layer {
   /** The phase: TRAIN or TEST */
   Phase phase_;
   /** The vector that stores the learnable parameters as a set of blobs. */
+  //NOTE
   vector<shared_ptr<Blob<Dtype> > > blobs_;
   /** Vector indicating whether to compute the diff of each param blob. */
   vector<bool> param_propagate_down_;
@@ -409,6 +415,7 @@ class Layer {
 // Forward and backward wrappers. You should implement the cpu and
 // gpu specific implementations instead, and should not change these
 // functions.
+//NOTE
 template <typename Dtype>
 inline Dtype Layer<Dtype>::Forward(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
@@ -462,11 +469,15 @@ inline void Layer<Dtype>::Backward(const vector<Blob<Dtype>*>& top,
 }
 
 // Serialize LayerParameter to protocol buffer
+//NOTE
 template <typename Dtype>
 void Layer<Dtype>::ToProto(LayerParameter* param, bool write_diff) {
   param->Clear();
   param->CopyFrom(layer_param_);
   param->clear_blobs();
+  //NOTE: for each learnable parameter
+  LOG(INFO) << "========" << this->layer_param_.name() 
+    <<" layer parameters: " << blobs_.size();
   for (int i = 0; i < blobs_.size(); ++i) {
     blobs_[i]->ToProto(param->add_blobs(), write_diff);
   }

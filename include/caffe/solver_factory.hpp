@@ -57,6 +57,7 @@ class SolverRegistry {
   typedef std::map<string, Creator> CreatorRegistry;
 
   static CreatorRegistry& Registry() {
+    // Note: static variable so only one g_registry_ exsits
     static CreatorRegistry* g_registry_ = new CreatorRegistry();
     return *g_registry_;
   }
@@ -107,13 +108,14 @@ class SolverRegistry {
   }
 };
 
-
+//NOTE: solver registerer
 template <typename Dtype>
 class SolverRegisterer {
  public:
-  SolverRegisterer(const string& type,
-      Solver<Dtype>* (*creator)(const SolverParameter&)) {
-    // LOG(INFO) << "Registering solver type: " << type;
+  typedef Solver<Dtype>* (*Creator)(const SolverParameter&);
+
+  SolverRegisterer(const string& type, Creator creator) {
+    LOG(INFO) << "Registering solver type: " << type;
     SolverRegistry<Dtype>::AddCreator(type, creator);
   }
 };
@@ -123,6 +125,7 @@ class SolverRegisterer {
   static SolverRegisterer<float> g_creator_f_##type(#type, creator<float>);    \
   static SolverRegisterer<double> g_creator_d_##type(#type, creator<double>)   \
 
+//NOTE: Here a new solver will be created
 #define REGISTER_SOLVER_CLASS(type)                                            \
   template <typename Dtype>                                                    \
   Solver<Dtype>* Creator_##type##Solver(                                       \

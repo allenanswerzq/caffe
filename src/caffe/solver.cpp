@@ -24,7 +24,7 @@ SolverAction::Enum Solver<Dtype>::GetRequestedAction() {
   }
   return SolverAction::NONE;
 }
-
+//NOTE: create a new solver
 template <typename Dtype>
 Solver<Dtype>::Solver(const SolverParameter& param)
     : net_(), callbacks_(), requested_early_exit_(false) {
@@ -38,11 +38,12 @@ Solver<Dtype>::Solver(const string& param_file)
   ReadSolverParamsFromTextFileOrDie(param_file, &param);
   Init(param);
 }
-
+//NOTE
 template <typename Dtype>
 void Solver<Dtype>::Init(const SolverParameter& param) {
   LOG_IF(INFO, Caffe::root_solver()) << "Initializing solver from parameters: "
     << std::endl << param.DebugString();
+  // Note LOG(FATAL) << "TEST";
   param_ = param;
   CHECK_GE(param_.average_loss(), 1) << "average_loss should be non-negative.";
   CheckSnapshotWritePermissions();
@@ -58,7 +59,7 @@ void Solver<Dtype>::Init(const SolverParameter& param) {
   iter_ = 0;
   current_step_ = 0;
 }
-
+//NOTE: create a new network
 template <typename Dtype>
 void Solver<Dtype>::InitTrainNet() {
   const int num_train_nets = param_.has_net() + param_.has_net_param() +
@@ -97,7 +98,9 @@ void Solver<Dtype>::InitTrainNet() {
   net_state.MergeFrom(net_param.state());
   net_state.MergeFrom(param_.train_state());
   net_param.mutable_state()->CopyFrom(net_state);
+  //NOTE: real place to create a tarin network 
   net_.reset(new Net<Dtype>(net_param));
+  //LOG(FATAL) << "TEST";
 }
 
 template <typename Dtype>
@@ -175,7 +178,7 @@ void Solver<Dtype>::InitTestNets() {
     test_nets_[i]->set_debug_info(param_.debug_info());
   }
 }
-
+// Note
 template <typename Dtype>
 void Solver<Dtype>::Step(int iters) {
   const int start_iter = iter_;
@@ -252,6 +255,7 @@ void Solver<Dtype>::Step(int iters) {
     SolverAction::Enum request = GetRequestedAction();
 
     // Save a snapshot if needed.
+    // Note: save a snapshot
     if ((param_.snapshot()
          && iter_ % param_.snapshot() == 0
          && Caffe::root_solver()) ||
@@ -265,7 +269,7 @@ void Solver<Dtype>::Step(int iters) {
     }
   }
 }
-
+// Note: core train part
 template <typename Dtype>
 void Solver<Dtype>::Solve(const char* resume_file) {
   CHECK(Caffe::root_solver());
@@ -398,7 +402,7 @@ void Solver<Dtype>::Test(const int test_net_id) {
               << mean_score << loss_msg_stream.str();
   }
 }
-
+//NOTE: snapshot
 template <typename Dtype>
 void Solver<Dtype>::Snapshot() {
   CHECK(Caffe::root_solver());
@@ -413,7 +417,7 @@ void Solver<Dtype>::Snapshot() {
   default:
     LOG(FATAL) << "Unsupported snapshot format.";
   }
-
+  //NOTE: also save a snapshot of solver state
   SnapshotSolverState(model_filename);
 }
 
@@ -440,7 +444,7 @@ string Solver<Dtype>::SnapshotFilename(const string extension) {
   return param_.snapshot_prefix() + "_iter_" + caffe::format_int(iter_)
     + extension;
 }
-
+//NOTE
 template <typename Dtype>
 string Solver<Dtype>::SnapshotToBinaryProto() {
   string model_filename = SnapshotFilename(".caffemodel");

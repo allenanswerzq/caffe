@@ -34,6 +34,7 @@
 namespace caffe {
 
 // Get convolution layer according to engine.
+//NOTE: get convolution layer according to engine
 template <typename Dtype>
 shared_ptr<Layer<Dtype> > GetConvolutionLayer(
     const LayerParameter& param) {

@@ -36,6 +36,7 @@ SyncedMemory::~SyncedMemory() {
 #endif  // CPU_ONLY
 }
 
+//NOTE: allocate memeory
 inline void SyncedMemory::to_cpu() {
   check_device();
   switch (head_) {

@@ -11,10 +11,11 @@ namespace caffe {
 
 // Make sure each thread can have different values.
 static boost::thread_specific_ptr<Caffe> thread_instance_;
-
+// Per thread will have a Caffe object
 Caffe& Caffe::Get() {
   if (!thread_instance_.get()) {
-    thread_instance_.reset(new Caffe());
+    Caffe *caffe = new Caffe();
+    thread_instance_.reset(caffe);
   }
   return *(thread_instance_.get());
 }
@@ -42,11 +43,11 @@ int64_t cluster_seedgen(void) {
 
 void GlobalInit(int* pargc, char*** pargv) {
   // Google flags.
-  gflags::ParseCommandLineFlags(pargc, pargv, true);
+  ::gflags::ParseCommandLineFlags(pargc, pargv, true);
   // Google logging.
-  google::InitGoogleLogging(*(pargv)[0]);
+  ::google::InitGoogleLogging(*(pargv)[0]);
   // Provide a backtrace on segfault.
-  google::InstallFailureSignalHandler();
+  ::google::InstallFailureSignalHandler();
 }
 
 #ifdef CPU_ONLY  // CPU-only Caffe.
@@ -89,6 +90,7 @@ class Caffe::RNG::Generator {
   shared_ptr<caffe::rng_t> rng_;
 };
 
+// Initialization funtions for Caffe::RNG class
 Caffe::RNG::RNG() : generator_(new Generator()) { }
 
 Caffe::RNG::RNG(unsigned int seed) : generator_(new Generator(seed)) { }

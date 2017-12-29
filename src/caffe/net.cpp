@@ -18,7 +18,7 @@
 #include "caffe/util/upgrade_proto.hpp"
 
 namespace caffe {
-
+//NOTE: create a network
 template <typename Dtype>
 Net<Dtype>::Net(const NetParameter& param) {
   Init(param);
@@ -71,7 +71,7 @@ void Net<Dtype>::Init(const NetParameter& in_param) {
     if (!param.layer(layer_id).has_phase()) {
       param.mutable_layer(layer_id)->set_phase(phase_);
     }
-    // Setup layer.
+    //NOTE: get layer param
     const LayerParameter& layer_param = param.layer(layer_id);
     if (layer_param.propagate_down_size() > 0) {
       CHECK_EQ(layer_param.propagate_down_size(),
@@ -79,6 +79,7 @@ void Net<Dtype>::Init(const NetParameter& in_param) {
           << "propagate_down param must be specified "
           << "either 0 or bottom_size times ";
     }
+    //NOTE: real place to create a new layer
     layers_.push_back(LayerRegistry<Dtype>::CreateLayer(layer_param));
     layer_names_.push_back(layer_param.name());
     LOG_IF(INFO, Caffe::root_solver())
@@ -117,8 +118,11 @@ void Net<Dtype>::Init(const NetParameter& in_param) {
         AppendTop(param, layer_id, num_top, NULL, NULL);
       }
     }
+
     // After this layer is connected, set it up.
+    // Note: setup Layers
     layers_[layer_id]->SetUp(bottom_vecs_[layer_id], top_vecs_[layer_id]);
+
     LOG_IF(INFO, Caffe::root_solver())
         << "Setting up " << layer_names_[layer_id];
     for (int top_id = 0; top_id < top_vecs_[layer_id].size(); ++top_id) {
@@ -153,6 +157,7 @@ void Net<Dtype>::Init(const NetParameter& in_param) {
       AppendParam(param, layer_id, param_id);
     }
     // Finally, set the backward flag
+    //NOTE: whether needs backward or not
     layer_need_backward_.push_back(need_backward);
     if (need_backward) {
       for (int top_id = 0; top_id < top_id_vecs_[layer_id].size(); ++top_id) {
@@ -261,6 +266,7 @@ void Net<Dtype>::FilterNet(const NetParameter& param,
   NetState net_state(param.state());
   param_filtered->CopyFrom(param);
   param_filtered->clear_layer();
+  // Note: filter layers according to NetStateRule 
   for (int i = 0; i < param.layer_size(); ++i) {
     const LayerParameter& layer_param = param.layer(i);
     const string& layer_name = layer_param.name();
@@ -396,6 +402,7 @@ template <typename Dtype>
 int Net<Dtype>::AppendBottom(const NetParameter& param, const int layer_id,
     const int bottom_id, set<string>* available_blobs,
     map<string, int>* blob_name_to_idx) {
+
   const LayerParameter& layer_param = param.layer(layer_id);
   const string& blob_name = layer_param.bottom(bottom_id);
   if (available_blobs->find(blob_name) == available_blobs->end()) {
@@ -511,7 +518,7 @@ void Net<Dtype>::AppendParam(const NetParameter& param, const int layer_id,
     }
   }
 }
-
+//NOTE: forword network
 template <typename Dtype>
 Dtype Net<Dtype>::ForwardFromTo(int start, int end) {
   CHECK_GE(start, 0);
@@ -540,7 +547,7 @@ template <typename Dtype>
 Dtype Net<Dtype>::ForwardTo(int end) {
   return ForwardFromTo(0, end);
 }
-
+//NOTE
 template <typename Dtype>
 const vector<Blob<Dtype>*>& Net<Dtype>::Forward(Dtype* loss) {
   if (loss != NULL) {
@@ -728,13 +735,15 @@ void Net<Dtype>::Reshape() {
     layers_[i]->Reshape(bottom_vecs_[i], top_vecs_[i]);
   }
 }
-
+//NOTE: copy weights from trained models
 template <typename Dtype>
 void Net<Dtype>::CopyTrainedLayersFrom(const NetParameter& param) {
   int num_source_layers = param.layer_size();
   for (int i = 0; i < num_source_layers; ++i) {
     const LayerParameter& source_layer = param.layer(i);
     const string& source_layer_name = source_layer.name();
+    LOG(INFO) << "____copy_trained_layer_from: "
+      << source_layer_name;
     int target_layer_id = 0;
     while (target_layer_id != layer_names_.size() &&
         layer_names_[target_layer_id] != source_layer_name) {
@@ -772,6 +781,7 @@ void Net<Dtype>::CopyTrainedLayersFrom(const string trained_filename) {
   if (H5Fis_hdf5(trained_filename.c_str())) {
     CopyTrainedLayersFromHDF5(trained_filename);
   } else {
+    //LOG(FATAL) << "TEST";
     CopyTrainedLayersFromBinaryProto(trained_filename);
   }
 }
@@ -833,13 +843,13 @@ void Net<Dtype>::CopyTrainedLayersFromHDF5(const string trained_filename) {
   H5Gclose(data_hid);
   H5Fclose(file_hid);
 }
-
+//NOTE: write network to a proto
 template <typename Dtype>
 void Net<Dtype>::ToProto(NetParameter* param, bool write_diff) const {
   param->Clear();
   param->set_name(name_);
   // Add bottom and top
-  DLOG(INFO) << "Serializing " << layers_.size() << " layers";
+  LOG(INFO) << "Serializing " << layers_.size() << " layers";
   for (int i = 0; i < layers_.size(); ++i) {
     LayerParameter* layer_param = param->add_layer();
     layers_[i]->ToProto(layer_param, write_diff);

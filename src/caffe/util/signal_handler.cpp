@@ -87,6 +87,7 @@ namespace caffe {
 
 SignalHandler::SignalHandler(SolverAction::Enum SIGINT_action,
                              SolverAction::Enum SIGHUP_action):
+  // Assignment
   SIGINT_action_(SIGINT_action),
   SIGHUP_action_(SIGHUP_action) {
   HookupHandler();
@@ -108,6 +109,7 @@ SolverAction::Enum SignalHandler::CheckForSignals() const {
 
 // Return the function that the solver can use to find out if a snapshot or
 // early exit is being requested.
+// Note: dont understand
 ActionCallback SignalHandler::GetActionFunction() {
   return boost::bind(&SignalHandler::CheckForSignals, this);
 }

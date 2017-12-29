@@ -16,6 +16,8 @@ namespace caffe {
 // The improvement in performance seems negligible in the single GPU case,
 // but might be more significant for parallel training. Most importantly,
 // it improved stability for large models on many GPUs.
+
+//NOTE: allocate memory
 inline void CaffeMallocHost(void** ptr, size_t size, bool* use_cuda) {
 #ifndef CPU_ONLY
   if (Caffe::mode() == Caffe::GPU) {

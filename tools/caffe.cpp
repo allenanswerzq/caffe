@@ -23,7 +23,7 @@ using caffe::Solver;
 using caffe::shared_ptr;
 using caffe::string;
 using caffe::Timer;
-using caffe::vector;
+using caffe::vector;  // using std::vector defined in common.hpp 
 using std::ostringstream;
 
 DEFINE_string(gpu, "",
@@ -148,6 +148,7 @@ RegisterBrewFunction(device_query);
 
 // Load the weights from the specified caffemodel(s) into the train and
 // test nets.
+// Note
 void CopyLayers(caffe::Solver<float>* solver, const std::string& model_list) {
   std::vector<std::string> model_names;
   boost::split(model_names, model_list, boost::is_any_of(",") );
@@ -185,6 +186,8 @@ int train() {
   vector<string> stages = get_stages_from_flags();
 
   caffe::SolverParameter solver_param;
+  
+  //LOG(FATAL) << string(FLAGS_solver);
   caffe::ReadSolverParamsFromTextFileOrDie(FLAGS_solver, &solver_param);
 
   solver_param.mutable_train_state()->set_level(FLAGS_level);
@@ -229,13 +232,14 @@ int train() {
     Caffe::set_solver_count(gpus.size());
   }
 
+
   caffe::SignalHandler signal_handler(
         GetRequestedAction(FLAGS_sigint_effect),
         GetRequestedAction(FLAGS_sighup_effect));
-
+  //NOTE: first step create a new solver
   shared_ptr<caffe::Solver<float> >
       solver(caffe::SolverRegistry<float>::CreateSolver(solver_param));
-
+  //LOG(FATAL) << "TEST";
   solver->SetActionFunction(signal_handler.GetActionFunction());
 
   if (FLAGS_snapshot.size()) {
@@ -286,21 +290,22 @@ int test() {
   }
   // Instantiate the caffe net.
   Net<float> caffe_net(FLAGS_model, caffe::TEST, FLAGS_level, &stages);
+  //LOG(FATAL) << FLAGS_weights;
   caffe_net.CopyTrainedLayersFrom(FLAGS_weights);
   LOG(INFO) << "Running for " << FLAGS_iterations << " iterations.";
 
   vector<int> test_score_output_id;
   vector<float> test_score;
   float loss = 0;
-  for (int i = 0; i < FLAGS_iterations; ++i) {
+  for (int i = 0; i < FLAGS_iterations; ++i) { // for each batch
     float iter_loss;
     const vector<Blob<float>*>& result =
         caffe_net.Forward(&iter_loss);
     loss += iter_loss;
     int idx = 0;
-    for (int j = 0; j < result.size(); ++j) {
+    for (int j = 0; j < result.size(); ++j) { // for each output blob
       const float* result_vec = result[j]->cpu_data();
-      for (int k = 0; k < result[j]->count(); ++k, ++idx) {
+      for (int k = 0; k < result[j]->count(); ++k, ++idx) { // for each value in each blob
         const float score = result_vec[k];
         if (i == 0) {
           test_score.push_back(score);
@@ -321,6 +326,7 @@ int test() {
         caffe_net.output_blob_indices()[test_score_output_id[i]]];
     const float loss_weight = caffe_net.blob_loss_weights()[
         caffe_net.output_blob_indices()[test_score_output_id[i]]];
+
     std::ostringstream loss_msg_stream;
     const float mean_score = test_score[i] / FLAGS_iterations;
     if (loss_weight) {
@@ -445,7 +451,7 @@ int main(int argc, char** argv) {
 #ifdef WITH_PYTHON_LAYER
     try {
 #endif
-      return (caffe::string(argv[1]))();
+      return GetBrewFunction(caffe::string(argv[1]))();
 #ifdef WITH_PYTHON_LAYER
     } catch (bp::error_already_set) {
       PyErr_Print();
